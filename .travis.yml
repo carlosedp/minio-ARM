@@ -56,16 +56,3 @@ jobs:
       env:
         # Overwrite env to avoid running stage for entire
         TARGET=none ARCH=none TAG=none
-
-
-
-
-
-
-
-
-
-
-
-
- cat Dockerfile.release | sed /linux-amd64/d |sed s/COPY\ /COPY\ minio\ /g
