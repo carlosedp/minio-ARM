@@ -1,0 +1,70 @@
+go_import_path: github.com/minio/minio
+sudo: required
+
+services:
+ - docker
+
+go:
+- 1.9
+
+env:
+  global:
+    - QEMU_VERSION=v2.11.0
+    - REGISTRY=carlosedp
+    - IMAGE=minio
+  matrix:
+    - TARGET=arm64v8 ARCH=aarch64 TAG=arm64
+    - TARGET=arm32v6 ARCH=arm TAG=arm
+
+install:
+  - docker run --rm --privileged multiarch/qemu-user-static:register
+
+script:
+# Download
+  - export GOARCH=${TAG}
+  - curl -L -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz -C ${IMAGE}
+  - patch Dockerfile.release Dockerfile.arm.patch
+  - make
+  - diff -au <(gofmt -s -d cmd) <(printf "")
+  - diff -au <(gofmt -s -d pkg) <(printf "")
+  - make test GOFLAGS="-timeout 15m -race -v"
+  - make coverage
+  - VERSION=`./minio version|grep Version|egrep -o '[0-9-]{10}|sed s/-//g'`
+  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} -f Dockerfile.release .
+# Build
+# Check
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
+      docker push ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} ;
+    fi
+
+jobs:
+  include:
+    - stage: deploy
+      script:
+        - VERSION=`./minio version|grep Version|egrep -o '[0-9-]{10}|sed s/-//g'`
+        - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+        - echo "Downloading manifest-tool"
+        - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
+        - mv manifest-tool-linux-amd64 manifest-tool
+        - chmod +x manifest-tool
+        - ./manifest-tool --version
+        - echo "Pushing manifest "$IMAGE":latest"
+        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64 --template "$IMAGE:$VERSION-ARCH" --target "$IMAGE:latest"
+        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64 --template "$IMAGE:$VERSION-ARCH" --target "$IMAGE:$VERSION"
+      env:
+        # Overwrite env to avoid running stage for entire
+        TARGET=none ARCH=none TAG=none
+
+
+
+
+
+
+
+
+
+
+
+
+ cat Dockerfile.release | sed /linux-amd64/d |sed s/COPY\ /COPY\ minio\ /g
