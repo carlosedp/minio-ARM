@@ -14,8 +14,8 @@ env:
     - REGISTRY=carlosedp
     - IMAGE=minio
   matrix:
-    - TARGET=arm64v8 ARCH=aarch64 TAG=arm64
-    - TARGET=arm32v6 ARCH=arm TAG=arm
+    - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
+    - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
 
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register
@@ -55,4 +55,4 @@ jobs:
         - ./manifest-tool push from-args --platforms linux/arm,linux/arm64 --template "$IMAGE:$VERSION-ARCH" --target "$IMAGE:$VERSION"
       env:
         # Overwrite env to avoid running stage for entire
-        TARGET=none ARCH=none TAG=none
+        TARGET=none QEMU_ARCH=none TAG=none
