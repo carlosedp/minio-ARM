@@ -1,6 +1,5 @@
 sudo: required
 language: bash
-go_import_path: github.com/minio/minio
 
 services:
  - docker
@@ -9,6 +8,7 @@ env:
   global:
     - QEMU_VERSION=v2.11.0
     - REGISTRY=carlosedp
+    - REPO=minio/minio
     - IMAGE=minio
   matrix:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
@@ -21,12 +21,12 @@ script:
   - go version
   - go env
 # Download
-  - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
+  - export VERSION=`curl -s https://github.com/${REPO}/releases/latest | grep 'tag_name' | cut -d\" -f4`
   - echo "Building version ${VERSION} for ${GOARCH}."
-  - git clone https://github.com/minio/minio.git -b ${VERSION} --depth=1
-  - mkdir -p $GOPATH/github.com/minio
-  - mv minio $GOPATH/github.com/minio
-  - cd $GOPATH/src/github.com/minio/minio
+  - git clone https://github.com/${REPO} -b ${VERSION} --depth=1
+  - mkdir -p $GOPATH/src/github.com/${IMAGE}
+  - mv ${IMAGE} $GOPATH/src/github.com/${IMAGE}
+  - cd $GOPATH/src/github.com/${REPO}
 # Get deps
   - go get .
 # Build
@@ -52,7 +52,7 @@ jobs:
   include:
     - stage: deploy
       script:
-        - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
+        - export VERSION=`curl -s https://api.github.com/repos/${REPO}/releases/latest | grep "tag_name" | cut -d\" -f4`
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
