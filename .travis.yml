@@ -21,10 +21,12 @@ script:
   - go version
   - go env
 # Download
-  - export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
-  - VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
+  - git clone https://github.com/${REPO}
+  - cd ${REPO}
+  - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
+  #- export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
+  #- VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
   - echo "Building version $VERSION for $GOARCH."
-  - git clone https://github.com/${REPO} -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/src/github.com/${IMAGE}
   - mv ${IMAGE} $GOPATH/src/github.com/${IMAGE}
   - cd $GOPATH/src/github.com/${REPO}
@@ -53,7 +55,9 @@ jobs:
   include:
     - stage: deploy
       script:
-        - export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
+        - git clone https://github.com/${REPO}
+        - cd ${REPO}
+        - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
