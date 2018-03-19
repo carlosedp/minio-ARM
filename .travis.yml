@@ -17,34 +17,38 @@ env:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
     - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
 
-install:
-  - docker run --rm --privileged multiarch/qemu-user-static:register
-
 script:
-# Download
   - export DIR=`pwd`
   - export GOARCH=${TAG}
+  # Download
   - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
-  - git clone https://github.com/minio/minio.git --depth=1 -b ${VERSION}
+  - echo "Building version ${VERSION} for ${GOARCH}."
+  - git clone https://github.com/minio/minio.git -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/github.com/minio
   - mv minio $GOPATH/github.com/minio
   - cd $GOPATH/src/github.com/minio/minio
-  - curl -L -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
-  - patch Dockerfile.release < $DIR/Dockerfile.arm.patch
+  # Get deps
+  - go get .
+  # Build
+  - patch Dockerfile.release $DIR/Dockerfile.arm.patch
   - make
   - diff -au <(gofmt -s -d cmd) <(printf "")
   - diff -au <(gofmt -s -d pkg) <(printf "")
   - make test GOFLAGS="-timeout 15m -race -v"
   - make coverage
+  # Get QEMU
+  - curl -L -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
+  # Build image
+  - docker run --rm --privileged multiarch/qemu-user-static:register
   - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.release .
-# Build
-# Check
+  # Push image
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
       docker push ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} ;
     fi
 
 jobs:
+  # Create image manifest
   include:
     - stage: deploy
       script:
