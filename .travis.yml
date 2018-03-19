@@ -30,7 +30,7 @@ script:
   - mv minio $GOPATH/github.com/minio
   - cd $GOPATH/src/github.com/minio/minio
   - curl -L -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
-  - patch Dockerfile.release $DIR/Dockerfile.arm.patch
+  - patch Dockerfile.release < $DIR/Dockerfile.arm.patch
   - make
   - diff -au <(gofmt -s -d cmd) <(printf "")
   - diff -au <(gofmt -s -d pkg) <(printf "")
