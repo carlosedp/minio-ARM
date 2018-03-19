@@ -21,9 +21,10 @@ script:
   - go version
   - go env
 # Download
-  - git clone https://github.com/${REPO}
-  - cd ${REPO}
+  - git clone https://github.com/${REPO} ${IMAGE}
+  - pushd ${IMAGE}
   - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
+  - popd
   #- export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
   #- VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
   - echo "Building version $VERSION for $GOARCH."
@@ -55,9 +56,10 @@ jobs:
   include:
     - stage: deploy
       script:
-        - git clone https://github.com/${REPO}
-        - cd ${REPO}
+        - git clone https://github.com/${REPO} ${IMAGE}
+        - pushd ${IMAGE}
         - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
+        - popd
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
