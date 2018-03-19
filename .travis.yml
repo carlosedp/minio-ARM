@@ -21,7 +21,7 @@ script:
   - go version
   - go env
 # Download
-  - export VERSION=${curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4}
+  - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
   - echo "Building version ${VERSION} for ${GOARCH}."
   - git clone https://github.com/minio/minio.git -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/github.com/minio
