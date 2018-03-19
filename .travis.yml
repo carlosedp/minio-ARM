@@ -21,7 +21,7 @@ script:
   - go version
   - go env
 # Download
-  - export VERSION=`curl -sL https://api.github.com/repos/${REPO}/releases/latest | jq -r ".tag_name"`
+  - export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
   - echo "Building version ${VERSION} for ${GOARCH}."
   - git clone https://github.com/${REPO} -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/src/github.com/${IMAGE}
@@ -37,7 +37,7 @@ script:
   - make test GOFLAGS="-timeout 15m -race -v"
   - make coverage
 # Get QEMU
-  - curl -L -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
+  - curl -sL -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
 # Build image
   - docker run --rm --privileged multiarch/qemu-user-static:register
   - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.release .
@@ -52,7 +52,7 @@ jobs:
   include:
     - stage: deploy
       script:
-        - export VERSION=`curl -sL https://api.github.com/repos/${REPO}/releases/latest | jq -r ".tag_name"`
+        - export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
