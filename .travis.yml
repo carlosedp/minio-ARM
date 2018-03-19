@@ -36,10 +36,6 @@ script:
 # Build
   - patch Dockerfile.release $DIR/Dockerfile.arm.patch
   - make
-  - diff -au <(gofmt -s -d cmd) <(printf "")
-  - diff -au <(gofmt -s -d pkg) <(printf "")
-  - make test GOFLAGS="-timeout 15m -race -v"
-  - make coverage
 # Get QEMU
   - curl -sL -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
 # Build image
