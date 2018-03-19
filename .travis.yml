@@ -23,8 +23,8 @@ install:
 script:
 # Download
   - export GOARCH=${TAG}
-  - VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
-  - git clone https://github.com/minio/minio.git --depth=1 -b ${VERSION}
+  - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
+  - git clone https://github.com/minio/minio.git --depth=1 -b $VERSION
   - mkdir -p $GOPATH/github.com/minio
   - mv minio $GOPATH/github.com/minio
   - cd $GOPATH/src/github.com/minio/minio
@@ -35,19 +35,19 @@ script:
   - diff -au <(gofmt -s -d pkg) <(printf "")
   - make test GOFLAGS="-timeout 15m -race -v"
   - make coverage
-  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.release .
+  - docker build -t ${REGISTRY}/${IMAGE}:$VERSION-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.release .
 # Build
 # Check
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
-      docker push ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} ;
+      docker push ${REGISTRY}/${IMAGE}:$VERSION-${TAG} ;
     fi
 
 jobs:
   include:
     - stage: deploy
       script:
-        - VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
+        - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
