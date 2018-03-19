@@ -1,12 +1,9 @@
 sudo: required
-language: go
+language: bash
 go_import_path: github.com/minio/minio
 
 services:
  - docker
-
-go:
-- 1.9
 
 env:
   global:
@@ -19,7 +16,12 @@ env:
 
 script:
   - export DIR=`pwd`
+  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.9 bash)"
   - export GOARCH=${TAG}
+  - mkdir -p ${GOPATH}
+  - go version
+  - go env
+  - export GOPATH=${HOME}/go
 # Download
   - export VERSION=`curl -s https://api.github.com/repos/minio/minio/releases/latest | grep "tag_name" | cut -d\" -f4`
   - echo "Building version ${VERSION} for ${GOARCH}."
