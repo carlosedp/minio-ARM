@@ -21,7 +21,7 @@ script:
   - go version
   - go env
 # Download
-  - export VERSION=`curl -s https://github.com/${REPO}/releases/latest | grep 'tag_name' | cut -d\" -f4`
+  - export VERSION=`curl -s https://github.com/${REPO}/releases/latest | jq -r ".tag_name`
   - echo "Building version ${VERSION} for ${GOARCH}."
   - git clone https://github.com/${REPO} -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/src/github.com/${IMAGE}
@@ -52,7 +52,7 @@ jobs:
   include:
     - stage: deploy
       script:
-        - export VERSION=`curl -s https://api.github.com/repos/${REPO}/releases/latest | grep "tag_name" | cut -d\" -f4`
+        - export VERSION=`curl -s https://api.github.com/repos/${REPO}/releases/latest | jq -r ".tag_name`
         - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
         - echo "Downloading manifest-tool"
         - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
