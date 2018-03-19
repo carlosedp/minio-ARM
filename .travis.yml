@@ -16,13 +16,14 @@ env:
 
 script:
   - export DIR=`pwd`
-  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.9 bash)"
+  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.9.4 bash)"
   - export GOARCH=${TAG}
   - go version
   - go env
 # Download
   - export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
-  - echo "Building version ${VERSION} for ${GOARCH}."
+  - VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
+  - echo "Building version $VERSION for $GOARCH."
   - git clone https://github.com/${REPO} -b ${VERSION} --depth=1
   - mkdir -p $GOPATH/src/github.com/${IMAGE}
   - mv ${IMAGE} $GOPATH/src/github.com/${IMAGE}
