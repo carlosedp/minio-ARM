@@ -4,11 +4,11 @@ FROM $target/alpine
 ARG arch=arm
 ENV ARCH=$arch
 
-# Trick docker build in case qemu binary is not in dir.
 COPY qemu-$ARCH-static* /usr/bin/
 
 MAINTAINER Carlos Eduardo de Paula<carlosedp@gmail.com>
 
+# Dockerfile application commands from this point on
 COPY minio dockerscripts/docker-entrypoint.sh dockerscripts/healthcheck.sh /usr/bin/
 
 ENV MINIO_UPDATE off
