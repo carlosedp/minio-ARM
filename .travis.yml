@@ -9,7 +9,7 @@ env:
     - QEMU_VERSION=v2.11.0
     - GITHUB_REPO=minio/minio
     - REGISTRY=carlosedp
-    - IMAGE=minio-arm
+    - IMAGE=minio
   matrix:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
     - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
