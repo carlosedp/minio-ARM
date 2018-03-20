@@ -34,14 +34,13 @@ script:
 # Get deps
   - go get .
 # Build
-  - patch Dockerfile.release $DIR/Dockerfile.arm.patch
   - make
 # Get QEMU
   - curl -sL -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
 # Build image
   - docker run --rm --privileged multiarch/qemu-user-static:register
-  - touch .blank
-  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.release .
+  - cp $DIR/Dockerfile.arm .
+  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.arm .
 # Push image
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;

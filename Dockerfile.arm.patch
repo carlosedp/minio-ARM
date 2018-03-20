@@ -8,7 +8,7 @@
 > ENV ARCH=$arch
 > 
 > # Trick docker build in case qemu binary is not in dir.
-> COPY .blank tmp/qemu-$ARCH-static* /usr/bin/
+> COPY .blank qemu-$ARCH-static* /usr/bin/
 5c12
 < COPY dockerscripts/docker-entrypoint.sh dockerscripts/healthcheck.sh /usr/bin/
 ---
