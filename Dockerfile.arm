@@ -7,9 +7,9 @@ ENV ARCH=$arch
 # Trick docker build in case qemu binary is not in dir.
 COPY qemu-$ARCH-static* /usr/bin/
 
-MAINTAINER Minio Inc <dev@minio.io>
+MAINTAINER Carlos Eduardo de Paula<carlosedp@gmail.com>
 
-COPY minio dockerscripts/docker-entrypoint.sh dockerscripts/healthcheck.sh
+COPY minio dockerscripts/docker-entrypoint.sh dockerscripts/healthcheck.sh /usr/bin/
 
 ENV MINIO_UPDATE off
 ENV MINIO_ACCESS_KEY_FILE=access_key \
