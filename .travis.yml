@@ -7,9 +7,9 @@ services:
 env:
   global:
     - QEMU_VERSION=v2.11.0
+    - GITHUB_REPO=minio/minio
     - REGISTRY=carlosedp
-    - REPO=minio/minio
-    - IMAGE=minio
+    - IMAGE=minio-arm
   matrix:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
     - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
@@ -21,16 +21,14 @@ script:
   - go version
   - go env
 # Download
-  - git clone https://github.com/${REPO} ${IMAGE}
+  - git clone https://github.com/${GITHUB_REPO} ${IMAGE}
   - pushd ${IMAGE}
   - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
   - popd
-  #- export VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
-  #- VERSION=`curl -sL https://api.github.com/repos/$REPO/releases/latest | jq -r ".tag_name"`
   - echo "Building version $VERSION for $GOARCH."
   - mkdir -p $GOPATH/src/github.com/${IMAGE}
   - mv ${IMAGE} $GOPATH/src/github.com/${IMAGE}
-  - cd $GOPATH/src/github.com/${REPO}
+  - cd $GOPATH/src/github.com/${GITHUB_REPO}
 # Get deps
   - go get .
 # Build
@@ -52,7 +50,7 @@ jobs:
   include:
     - stage: deploy
       script:
-        - git clone https://github.com/${REPO} ${IMAGE}
+        - git clone https://github.com/${GITHUB_REPO} ${IMAGE}
         - pushd ${IMAGE}
         - export VERSION=`git describe --tags $(git rev-list --tags --max-count=1)`
         - popd
