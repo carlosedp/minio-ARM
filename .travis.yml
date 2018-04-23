@@ -16,7 +16,7 @@ env:
 
 script:
   - export DIR=`pwd`
-  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.9.4 bash)"
+  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.10.1 bash)"
   - export GOARCH=${TAG}
   - go version
   - go env
