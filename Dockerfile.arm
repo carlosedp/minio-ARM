@@ -29,8 +29,7 @@ RUN \
 
 RUN \
     curl https://dl.minio.io/client/mc/release/linux-$TAG/mc > /usr/bin/mc && \
-    chmod +x /usr/bin/mc && \
-    mc config host add minio http://minio:9000 $MINIO_ACCESS_KEY_FILE $MINIO_SECRET_KEY_FILE
+    chmod +x /usr/bin/mc
 
 EXPOSE 9000
 
