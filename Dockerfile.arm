@@ -30,7 +30,7 @@ RUN \
 RUN \
     curl https://dl.minio.io/client/mc/release/linux-$TAG/mc > /usr/bin/mc && \
     chmod +x /usr/bin/mc && \
-    sed -i.bak -e 's/\(^exec.*\)/mc config host add local http:\/\/localhost:9000 $MINIO_ACCESS_KEY_FILE $MINIO_SECRET_KEY_FILE\n\1/g' /usr/bin/docker-entrypoint.sh
+    sed -i.bak -e 's/\(^exec.*\)/mc config host add local http:\/\/localhost:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY\n\1/g' /usr/bin/docker-entrypoint.sh
 
 EXPOSE 9000
 
