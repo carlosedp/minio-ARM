@@ -4,6 +4,9 @@ FROM $target/alpine
 ARG arch=arm
 ENV ARCH=$arch
 
+ARG tag=arm
+ENV TAG=$tag
+
 COPY qemu-$ARCH-static* /usr/bin/
 
 MAINTAINER Carlos Eduardo de Paula<carlosedp@gmail.com>
@@ -22,6 +25,12 @@ RUN \
      chmod +x /usr/bin/minio  && \
      chmod +x /usr/bin/docker-entrypoint.sh && \
      chmod +x /usr/bin/healthcheck.sh
+
+
+RUN \
+    curl https://dl.minio.io/client/mc/release/linux-$TAG/mc > /usr/bin/mc && \
+    chmod +x /usr/bin/mc && \
+    mc config host add minio http://minio:9000 $MINIO_ACCESS_KEY_FILE $MINIO_SECRET_KEY_FILE
 
 EXPOSE 9000
 

@@ -36,7 +36,7 @@ script:
 # Build image
   - docker run --rm --privileged multiarch/qemu-user-static:register
   - cp $DIR/Dockerfile.arm .
-  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH -f Dockerfile.arm .
+  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH --build-arg tag=$TAG -f Dockerfile.arm .
 # Push image
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
