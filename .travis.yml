@@ -10,9 +10,7 @@ env:
     - GITHUB_REPO=minio/minio
     - REGISTRY=carlosedp
     - IMAGE=minio
-  matrix:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
-#    - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
 
 script:
   - export DIR=`pwd`
@@ -42,22 +40,15 @@ script:
       docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
       docker push ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} ;
     fi
+# Create manifests
+  - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPO}/releases/latest | jq -r ".tag_name")'
+  - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+  - echo "Downloading manifest-tool"
+  - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
+  - mv manifest-tool-linux-amd64 manifest-tool
+  - chmod +x manifest-tool
+  - ./manifest-tool --version
+  - echo "Pushing manifest "$REGISTRY/$IMAGE":latest"
+  - ./manifest-tool push from-args --platforms linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:latest"
+  - ./manifest-tool push from-args --platforms linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:$VERSION"
 
-jobs:
-# Create image manifest
-  include:
-    - stage: deploy
-      script:
-        - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPO}/releases/latest | jq -r ".tag_name")'
-        - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
-        - echo "Downloading manifest-tool"
-        - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
-        - mv manifest-tool-linux-amd64 manifest-tool
-        - chmod +x manifest-tool
-        - ./manifest-tool --version
-        - echo "Pushing manifest "$REGISTRY/$IMAGE":latest"
-        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:latest"
-        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:$VERSION"
-      env:
-        # Overwrite env to avoid running stage for entire
-        TARGET=none QEMU_ARCH=none TAG=none
