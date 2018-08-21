@@ -12,7 +12,7 @@ env:
     - IMAGE=minio
   matrix:
     - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
-    - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
+#    - TARGET=arm32v6 QEMU_ARCH=arm TAG=arm
 
 script:
   - export DIR=`pwd`
