@@ -1,54 +1,41 @@
-sudo: required
-language: bash
+os: linux
+dist: bionic
 
-services:
- - docker
+language: shell
 
 env:
   global:
-    - QEMU_VERSION=v2.11.0
-    - GITHUB_REPO=minio/minio
-    - REGISTRY=carlosedp
-    - IMAGE=minio
-    - TARGET=arm64v8 QEMU_ARCH=aarch64 TAG=arm64
+    - REPO=carlosedp
+    - ARCHS="linux/arm,linux/arm64,linux/amd64,linux/ppc64le"
+  matrix:
+    - IMAGE=minio DOCKERFILE=Dockerfile.release
+    - IMAGE=mc DOCKERFILE=Dockerfile.mc
+
+before_install:
+    - curl -fsSL https://get.docker.com | sh
+    - echo '{"experimental":"enabled"}' | sudo tee /etc/docker/daemon.json
+    - mkdir -p $HOME/.docker
+    - echo '{"experimental":"enabled"}' | sudo tee $HOME/.docker/config.json
+    - sudo service docker start
+install:
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - docker buildx create --name xbuilder --use
 
 script:
-  - export DIR=`pwd`
-  - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.10.1 bash)"
-  - export GOARCH=${TAG}
-  - go version
-  - go env
-# Download
-  - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPO}/releases/latest | jq -r ".tag_name")'
-  - git clone https://github.com/${GITHUB_REPO} --depth=1 -b ${VERSION} ${IMAGE}
-  - echo "Building ${GITHUB_REPO} version $VERSION for $GOARCH."
-  - mkdir -p $GOPATH/src/github.com/${IMAGE}
-  - mv ${IMAGE} $GOPATH/src/github.com/${IMAGE}
-  - cd $GOPATH/src/github.com/${GITHUB_REPO}
-# Get deps
-  - go get .
-# Build
-  - make
-# Get QEMU
-  - curl -sL -o qemu-${QEMU_ARCH}-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/${QEMU_VERSION}/qemu-${QEMU_ARCH}-static.tar.gz && tar zx -f qemu-${QEMU_ARCH}-static.tar.gz
-# Build image
-  - docker run --rm --privileged multiarch/qemu-user-static:register
-  - cp $DIR/Dockerfile.arm .
-  - docker build -t ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} --build-arg target=$TARGET --build-arg arch=$QEMU_ARCH --build-arg tag=$TAG -f Dockerfile.arm .
-# Push image
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      docker login -u="$DOCKER_USER" -p="$DOCKER_PASS" ;
-      docker push ${REGISTRY}/${IMAGE}:${VERSION}-${TAG} ;
-    fi
-# Create manifests
-  - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPO}/releases/latest | jq -r ".tag_name")'
-  - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
-  - echo "Downloading manifest-tool"
-  - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
-  - mv manifest-tool-linux-amd64 manifest-tool
-  - chmod +x manifest-tool
-  - ./manifest-tool --version
-  - echo "Pushing manifest "$REGISTRY/$IMAGE":latest"
-  - ./manifest-tool push from-args --platforms linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:latest"
-  - ./manifest-tool push from-args --platforms linux/arm64 --template "$REGISTRY/$IMAGE:$VERSION-ARCH" --target "$REGISTRY/$IMAGE:$VERSION"
-
+    - >
+      if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+        TAG="${TRAVIS_TAG:-latest}"
+        docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+        docker buildx build \
+          --platform=$ARCHS \
+          -t $REPO/$IMAGE \
+          -f $DOCKERFILE \
+          --push .
+      elif [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$TRAVIS_BRANCH" != "master" ]; then
+        docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+        docker buildx build \
+          --platform=$ARCHS \
+          -t $REPO/$IMAGE \
+          -f $DOCKERFILE \
+          .
+      fi
